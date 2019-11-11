@@ -16,32 +16,59 @@ class Instructor:
         self.Name = name
         self.Dept = dept
         self.Course = {}
-    
+
+
+class Major:
+    def __init__(self, name):
+        self.name = name
+        self.require_course = set()
+        self.elective_course = set()
+
+
 class University:
     def __init__(self, path):
         self.student_file = os.path.join(path,'students.txt')
         self.instructors_file = os.path.join(path,'instructors.txt')
         self.grade_file = os.path.join(path,'grades.txt')
+        self.major_file = os.path.join(path,'majors.txt')
         self.students = dict()
         self.instructors = dict()
+        self.major_dict = dict()
         self.read_students()
         self.read_instructors()
         self.read_grades()
+        self.read_major()
+        self.major_prettytable()
         self.student_prettytable()
         self.instructors_prettytable()
         
+    def read_major(self):
+        for major, RorE, course in self.file_reading_gen(self.major_file, 3,header=True):
+            if not major in self.major_dict:
+                m = Major(major)
+                self.major_dict[major] = m
+                if RorE == 'R':
+                    self.major_dict[major].require_course.add(course)
+                elif RorE == 'E':
+                    self.major_dict[major].elective_course.add(course)
+            else:
+                if RorE == 'R':
+                    self.major_dict[major].require_course.add(course)
+                elif RorE == 'E':
+                    self.major_dict[major].elective_course.add(course)
+
     def read_students(self):
-        for id, name, dept in self.file_reading_gen(self.student_file, 3):
+        for id, name, dept in self.file_reading_gen(self.student_file, fields =3):
             student_id = Student(id,name,dept)
             self.students[id] = student_id
     
     def read_instructors(self):
-        for id, name, dept in self.file_reading_gen(self.instructors_file,3):
+        for id, name, dept in self.file_reading_gen(self.instructors_file,fields = 3):
             instructor_id = Instructor(id,name,dept)
             self.instructors[id] = instructor_id
     
     def read_grades(self):
-        for student_id, course_name, grade, instructor_id in self.file_reading_gen(self.grade_file,4):
+        for student_id, course_name, grade, instructor_id in self.file_reading_gen(self.grade_file,fields = 4):
             self.students[student_id].Course[course_name] = grade
             if grade:
                 self.students[student_id].Completed_Course.append(course_name)
@@ -85,6 +112,13 @@ class University:
                     raise ValueError(f"{path} has {len(line)} on line {number} but expected 3Rds ")
                 else:
                     yield tuple(line)
+    
+    def major_prettytable(self):
+        majors_table = PrettyTable(field_names = ["Dept","Required","Electives"])
+        for dept in self.major_dict:
+            majors_table.add_row([dept,sorted(self.major_dict[dept].require_course),sorted(self.major_dict[dept].elective_course)])
+        print('Majors Summary')
+        print(majors_table)
 
 if __name__ == "__main__":
     path = '/Users/acai/Desktop/hw810'
