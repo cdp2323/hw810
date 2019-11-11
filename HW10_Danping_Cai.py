@@ -1,7 +1,9 @@
+#created by danping cai on 11/8
 import os
 from prettytable import PrettyTable
 
 class Student:
+    #student information structure
     def __init__(self,id, name, dept):
         self.CWID = id
         self.Name = name
@@ -11,6 +13,7 @@ class Student:
 
 
 class Instructor:
+    #instructor information structure
     def __init__(self, id, name, dept):
         self.CWID = id
         self.Name = name
@@ -19,6 +22,7 @@ class Instructor:
 
 
 class Major:
+    #major information structure
     def __init__(self, name):
         self.name = name
         self.require_course = set()
@@ -26,6 +30,7 @@ class Major:
 
 
 class University:
+    #university information structure
     def __init__(self, path):
         self.student_file = os.path.join(path,'students.txt')
         self.instructors_file = os.path.join(path,'instructors.txt')
@@ -43,6 +48,7 @@ class University:
         self.instructors_prettytable()
         
     def read_major(self):
+        #read major file and create major instance
         for major, RorE, course in self.file_reading_gen(self.major_file, 3,header=True):
             if not major in self.major_dict:
                 m = Major(major)
@@ -58,16 +64,19 @@ class University:
                     self.major_dict[major].elective_course.add(course)
 
     def read_students(self):
+        #read student file and create student instance and univerisity dictionary
         for id, name, dept in self.file_reading_gen(self.student_file, fields =3):
             student_id = Student(id,name,dept)
             self.students[id] = student_id
     
     def read_instructors(self):
+        #read instructor file and create instructor instance and univerisity dictionary
         for id, name, dept in self.file_reading_gen(self.instructors_file,fields = 3):
             instructor_id = Instructor(id,name,dept)
             self.instructors[id] = instructor_id
     
     def read_grades(self):
+        #read grades and add course information into instructor instance
         for student_id, course_name, grade, instructor_id in self.file_reading_gen(self.grade_file,fields = 4):
             self.students[student_id].Course[course_name] = grade
             if grade:
@@ -78,6 +87,7 @@ class University:
                 self.instructors[instructor_id].Course[course_name] += 1
 
     def student_prettytable(self):
+        #print student prettytable
         student_table = PrettyTable(field_names = ["CWID","NAME","Completed Course"])
         for CWID in self.students:
             student_table.add_row([CWID,self.students[CWID].Name, sorted(self.students[CWID].Completed_Course)])
@@ -85,6 +95,7 @@ class University:
         print(student_table)
     
     def instructors_prettytable(self):
+        #print instructor prettytable
         instructors_table = PrettyTable(field_names = ["CWID","NAME","Dept","Course","students"])
         for CWID in self.instructors:
             for course in self.instructors[CWID].Course:
@@ -114,6 +125,7 @@ class University:
                     yield tuple(line)
     
     def major_prettytable(self):
+        #print major prettytable
         majors_table = PrettyTable(field_names = ["Dept","Required","Electives"])
         for dept in self.major_dict:
             majors_table.add_row([dept,sorted(self.major_dict[dept].require_course),sorted(self.major_dict[dept].elective_course)])
@@ -123,5 +135,4 @@ class University:
 if __name__ == "__main__":
     path = '/Users/acai/Desktop/hw810'
     Cai_University = University(path)
-    a =1
     
